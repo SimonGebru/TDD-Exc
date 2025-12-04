@@ -1,4 +1,10 @@
 import { useMemo, useState } from 'react';
+import { FiEdit2, FiMessageSquare } from 'react-icons/fi';
+import dayjs from 'dayjs';
+import 'dayjs/locale/sv';
+
+// Sätt global locale till svenska
+dayjs.locale('sv');
 
 export default function App({ initialMessages = [] }) {
   const [messages, setMessages] = useState(initialMessages);
@@ -7,11 +13,14 @@ export default function App({ initialMessages = [] }) {
   const [username, setUsername] = useState('');
   const [error, setError] = useState('');
 
-  const sortedMessages = useMemo(() => {
-    return [...messages].sort(
-      (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-    );
-  }, [messages]);
+  // Sortera meddelanden: nyaste först
+  const sortedMessages = useMemo(
+    () =>
+      [...messages].sort(
+        (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+      ),
+    [messages]
+  );
 
   const hasMessages = sortedMessages.length > 0;
 
@@ -44,137 +53,165 @@ export default function App({ initialMessages = [] }) {
     setView('list');
   };
 
+  const handleCancel = () => {
+    setMessageText('');
+    setUsername('');
+    setError('');
+    setView('list');
+  };
+
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-50 flex items-center justify-center px-4">
-      <section className="w-full max-w-md bg-slate-900/70 border border-slate-800 rounded-3xl shadow-xl p-5 flex flex-col gap-4">
-        <header className="flex flex-col gap-1">
-          <h1 className="text-lg font-semibold tracking-tight">Shui – React</h1>
-          <p className="text-xs text-slate-400">
-            Dela korta meddelanden med klassen.
-          </p>
-        </header>
+    <main className="min-h-screen bg-[#0B1220] flex items-center justify-center py-6">
+      {/* Mobil-container: ca 411x840 (Figma-storlek) */}
+      <section className="w-[411px] h-[840px] bg-[#E5E5E5] shadow-2xl overflow-hidden relative">
+        {/* Blå bakgrund innanför mobilen */}
+        <div className="absolute inset-0 bg-[#19274A]" />
 
-        <div className="h-px bg-slate-800" />
+        {/*  S-badge högst upp (global) */}
+        <div className="absolute top-0 left-0 z-20">
+          <div className="bg-[#EF4343] text-white text-2xl font-semibold px-4 py-3 rounded-br-md">
+            S
+          </div>
+        </div>
 
-        {/* LISTVY */}
-        {view === 'list' && (
-          <>
-            {!hasMessages && (
-              <div className="flex flex-1 flex-col items-center justify-center py-8 text-center">
-                <p className="text-sm text-slate-300">
-                  Du har inga meddelanden att visa.
-                </p>
-                <p className="text-xs text-slate-500 mt-1">
-                  När du postar ett meddelande dyker det upp här.
-                </p>
-              </div>
-            )}
-
-            {hasMessages && (
-              <div className="flex-1 max-h-80 overflow-y-auto pr-1">
-                <ul className="space-y-3">
+        {/* Innehållsyta */}
+        <div className="relative z-10 h-full">
+          {/* LIST-VY */}
+          {view === 'list' && (
+            <>
+              {hasMessages && (
+                <div className="h-full pt-[20px] pb-[96px] px-[16px] overflow-y-auto">
                   {sortedMessages.map((msg) => (
-                    <li
+                    <article
                       key={msg.id}
                       data-testid="message-card"
-                      className="bg-slate-900 border border-slate-800 rounded-2xl px-3 py-2.5"
+                      className="relative w-[379px] bg-white rounded-[3px] shadow-[0_6px_18px_rgba(0,0,0,0.25)] px-6 pt-5 pb-7 mb-5"
                     >
-                      <p className="text-sm leading-snug mb-1">{msg.text}</p>
-                      <div className="flex items-center justify-between">
-                        <p className="text-xs text-slate-400">
-                          — {msg.author}
-                        </p>
-                        <p className="text-[10px] text-slate-500">
-                          {new Date(msg.createdAt).toLocaleString()}
+                      {/* Ikon + datum-rad */}
+                      <div className="flex items-center gap-2 mb-3">
+                        <FiMessageSquare
+                          aria-hidden="true"
+                          className="w-4 h-4 text-slate-500"
+                        />
+                        <p className="text-[11px] text-slate-500">
+                          {dayjs(msg.createdAt).format('ddd D MMM, HH:mm')}
                         </p>
                       </div>
-                    </li>
+
+                      {/* Själva meddelandet */}
+                      <p className="text-[14px] text-slate-900 leading-snug mb-4">
+                        {msg.text}
+                      </p>
+
+                      {/* Avsändare */}
+                      <p className="text-[14px] font-semibold text-slate-900">
+                        — {msg.author}
+                      </p>
+
+                      {/* Pratbubbel-spets längst ner till höger */}
+                      <div className="absolute -bottom-4 right-10 w-0 h-0 border-t-[18px] border-t-white border-l-[18px] border-l-transparent" />
+                    </article>
                   ))}
-                </ul>
-              </div>
-            )}
+                </div>
+              )}
 
-            <footer className="pt-2">
-              <div className="flex justify-end">
-                <button
-                  type="button"
-                  onClick={handleOpenForm}
-                  className="inline-flex items-center justify-center rounded-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-sm font-medium px-4 py-2 transition-colors"
-                >
-                  Nytt meddelande
-                </button>
-              </div>
-            </footer>
-          </>
-        )}
+              {!hasMessages && (
+                <div className="relative h-full flex flex-col">
+                  {/* Centerad text vid tom lista */}
+                  <div className="flex-1 flex items-center justify-center px-6 text-center">
+                    <p className="text-[20px] font-semibold text-white leading-snug">
+                      Du har inga meddelanden att visa.
+                    </p>
+                  </div>
 
-        {/* FORMVY */}
-        {view === 'create' && (
-          <form
-            onSubmit={handleSubmit}
-            className="flex flex-col gap-4"
-          >
-            <div className="flex flex-col gap-2">
-              <label
-                htmlFor="message"
-                className="text-sm font-medium text-slate-100"
-              >
-                Meddelande
-              </label>
-              <textarea
-                id="message"
-                rows={4}
-                className="w-full rounded-xl bg-slate-950 border border-slate-700 px-3 py-2 text-sm text-slate-50 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                value={messageText}
-                onChange={(e) => setMessageText(e.target.value)}
-              />
-            </div>
+                  {/* Vågig botten i ljusblått */}
+                  <div className="relative h-[160px] overflow-hidden">
+                    <div className="absolute -bottom-10 -left-16 w-[260px] h-[140px] bg-[#00B2FFCC] rounded-t-full" />
+                    <div className="absolute -bottom-24 left-80 w-[260px] h-[180px] bg-[#00B2FFCC] rounded-t-full" />
+                    <div className="absolute -bottom-20 left-40 w-[260px] h-[160px] bg-[#00B2FFCC] rounded-t-full" />
+                  </div>
+                </div>
+              )}
 
-            <div className="flex flex-col gap-2">
-              <label
-                htmlFor="username"
-                className="text-sm font-medium text-slate-100"
-              >
-                Användarnamn
-              </label>
-              <input
-                id="username"
-                type="text"
-                className="w-full rounded-xl bg-slate-950 border border-slate-700 px-3 py-2 text-sm text-slate-50 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-              />
-            </div>
-
-            {error && (
-              <p className="text-xs text-red-400">{error}</p>
-            )}
-
-            <div className="flex justify-end gap-2 pt-2">
+              {/* FAB-knapp – Nytt meddelande */}
               <button
                 type="button"
-                onClick={() => {
-                  setMessageText('');
-                  setUsername('');
-                  setError('');
-                  setView('list');
-                }}
-                className="text-xs px-3 py-2 rounded-full border border-slate-600 text-slate-200 hover:bg-slate-800"
+                aria-label="Nytt meddelande"
+                onClick={handleOpenForm}
+                className="absolute z-30 w-[72px] h-[72px] bg-[#EF4343] border-2 border-[#EF4343] rounded-[4px] bottom-[24px] right-[16px] shadow-xl flex items-center justify-center"
               >
-                Avbryt
+                <FiEdit2 aria-hidden="true" className="w-7 h-7 text-white" />
+                <span className="sr-only">Nytt meddelande</span>
               </button>
-              <button
-                type="submit"
-                className="inline-flex items-center justify-center rounded-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-sm font-medium px-4 py-2 transition-colors"
+            </>
+          )}
+
+          {/* SKRIV-VY */}
+          {view === 'create' && (
+            <div className="h-full flex flex-col px-[16px] pt-[87px] pb-6">
+              <form
+                onSubmit={handleSubmit}
+                className="flex flex-col flex-1 gap-5"
               >
-                Publicera
-              </button>
+                {/* Label för a11y + tester */}
+                <label htmlFor="message" className="sr-only">
+                  Meddelande
+                </label>
+
+                {/* Stor vit pratbubbla */}
+                <div className="relative">
+                  <textarea
+                    id="message"
+                    rows={6}
+                    className="w-[379px] h-[464px] resize-none rounded-[3px] bg-white text-slate-900 text-base leading-snug p-4 shadow-[0_6px_18px_rgba(0,0,0,0.25)] focus:outline-none"
+                    value={messageText}
+                    onChange={(e) => setMessageText(e.target.value)}
+                    placeholder="Låt oss baka pannkakor!"
+                  />
+                  <div className="absolute -bottom-4 right-10 w-0 h-0 border-t-[18px] border-t-white border-l-[18px] border-l-transparent" />
+                </div>
+
+                {/* Användarnamnfält */}
+                <div className="mt-3">
+                  <label htmlFor="username" className="sr-only">
+                    Användarnamn
+                  </label>
+                  <input
+                    id="username"
+                    type="text"
+                    className="w-[379px] h-[72px] rounded-[3px] bg-[#19274A] border border-white/70 text-white text-base px-4 placeholder:text-white/60 focus:outline-none focus:ring-2 focus:ring-white"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    placeholder="Användarnamn"
+                  />
+                </div>
+
+                {error && (
+                  <p className="text-xs text-red-300 mt-1">{error}</p>
+                )}
+
+                {/* Publicera + Avbryt */}
+                <div className="mt-auto flex flex-col gap-3">
+                  <button
+                    type="submit"
+                    className="w-[379px] h-[72px] bg-[#EF4343] text-black font-semibold rounded-[4px] text-base tracking-wide hover:brightness-110 transition"
+                  >
+                    Publicera
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleCancel}
+                    className="w-[379px] text-white/80 text-xs py-2"
+                  >
+                    Avbryt
+                  </button>
+                </div>
+              </form>
             </div>
-          </form>
-        )}
+          )}
+        </div>
       </section>
     </main>
   );
 }
-
 
